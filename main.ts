@@ -35,6 +35,17 @@ if ((LINE.match(/\./g) ?? []).length !== 1 || !LINE.endsWith(".")) {
   throw new Error("Line must be exactly one sentence ending in a period");
 }
 
+// The gate counts characters, but the leaderboard sizes the entry in bytes:
+// guard the byte length too, and reject control characters that would
+// corrupt a one-line read.
+const byteLength = Buffer.byteLength(LINE, "utf8");
+if (byteLength < 1 || byteLength > 200) {
+  throw new Error(`Line must be 1-200 bytes, got ${byteLength}`);
+}
+if (/[\u0000-\u001f\u007f]/.test(LINE)) {
+  throw new Error("Line must contain no control characters");
+}
+
 // In the grader /output is a mount point: create it when it is missing,
 // never remove it and never empty it wholesale.
 mkdirSync(dest, { recursive: true });
